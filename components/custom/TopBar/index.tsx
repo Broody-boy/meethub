@@ -6,6 +6,7 @@ import useProfileFetch from "@/hooks/useProfileFetch";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { ProfileSetupDialog } from "@/components/custom/ProfileSetupDialog";
 
 export function TopBar() {
   const { data: session } = useSession();
@@ -46,8 +47,18 @@ return (
         <div className="w-8 h-8 rounded-full bg-muted-foreground/20" />
       </div>
     ) :
-        isProfileDataNotFound 
-        ? ( <div className="h-12"/>) : (
+        isProfileDataNotFound
+        ? (
+          <>
+            <div className="h-12" />
+            <ProfileSetupDialog
+              open={true}
+              defaultFirstName={session?.user?.name?.split(" ")[0] ?? ""}
+              defaultLastName={session?.user?.name?.split(" ").slice(1).join(" ") ?? ""}
+              defaultPic={session?.user?.image ?? ""}
+            />
+          </>
+        ) : (
           <Button
         variant="ghost"
         className={`${pillClasses} hover:bg-muted/80`}
