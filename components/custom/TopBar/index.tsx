@@ -1,4 +1,7 @@
+"use client"
+
 import { APP_NAME } from "@/constants";
+import { signOut } from "next-auth/react";
 
 
 export function TopBar() {
@@ -14,7 +17,7 @@ export function TopBar() {
         <span>Settings</span>
       </div>
 
-      <div className="w-8 h-8 rounded-full bg-gray-200" />
+      <div className="w-8 h-8 rounded-full bg-gray-200" onClick={() => signOut()}/>
     </div>
   );
 }
