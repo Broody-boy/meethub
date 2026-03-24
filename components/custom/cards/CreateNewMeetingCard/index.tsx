@@ -1,4 +1,4 @@
-import { Video, ArrowRight } from "lucide-react";
+// import { Video, ArrowRight } from "lucide-react";
 
 export function CreateNewMeetingCard() {
   return (
@@ -6,7 +6,7 @@ export function CreateNewMeetingCard() {
       
       {/* Icon */}
       <div className="w-12 h-12 rounded-full bg-blue-500 flex items-center justify-center">
-        <Video className="text-white w-5 h-5" />
+        {/* <Video className="text-white w-5 h-5" /> */}
       </div>
 
       {/* Title + Description */}
@@ -36,7 +36,7 @@ export function CreateNewMeetingCard() {
           <span className="h-[2px] mt-1 w-0 bg-[#1a73e8] transition-all duration-300 group-hover:w-full group-hover:translate-x-1" />
         </div>
 
-        <ArrowRight className="w-6 h-6 transition-transform group-hover:translate-x-1" />
+        {/* <ArrowRight className="w-6 h-6 transition-transform group-hover:translate-x-1" /> */}
       </div>
 
     </div>

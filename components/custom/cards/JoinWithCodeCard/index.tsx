@@ -1,4 +1,4 @@
-import { Link } from "lucide-react";
+// import { Link } from "lucide-react";
 
 export function JoinWithCodeCard() {
   return (
@@ -8,7 +8,7 @@ export function JoinWithCodeCard() {
       <div>
         <div className="flex items-center gap-3 mt-3 ">
           <div className="text-[#1a73e8]">
-            <Link className="w-8 h-8" />
+            {/* <Link className="w-8 h-8" /> */}
           </div>
           <h3 className="text-3xl font-semibold text-[#1a73e8]">
             Join with code or link
