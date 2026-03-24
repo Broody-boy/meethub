@@ -25,6 +25,8 @@ const useProfileFetch = (params: UseProfileFetchParams) => {
   const { data, isLoading, isError, error } = useQuery<Profile | null>({
     queryKey: ['profile'],
     queryFn: () => fetchProfile(params),
+    refetchInterval: 0,
+    refetchOnWindowFocus: false
   });
 
   return {
