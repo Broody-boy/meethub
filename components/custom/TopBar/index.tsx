@@ -55,17 +55,17 @@ return (
       >
         {profileData && (
           <span className="text-base text-foreground whitespace-nowrap">
-            {profileData.name} {profileData.surName}
+            {profileData.firstName} {profileData.lastName}
           </span>
         )}
 
         <Avatar className="w-8 h-8">
           <AvatarImage
             src={profileData?.profileUrl || "/default-avatar.png"}
-            alt={profileData?.name}
+            alt={profileData?.firstName}
           />
           <AvatarFallback>
-            {profileData?.name?.[0]}{profileData?.surName?.[0]}
+            {profileData?.firstName?.[0]}{profileData?.lastName?.[0]}
           </AvatarFallback>
         </Avatar>
         </Button>
