@@ -8,10 +8,9 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
 } from "@/components/ui/dialog";
+import { ArrowRight, Upload, Video, Pencil } from "lucide-react";
+import { APP_NAME } from "@/constants";
 
 interface ProfileSetupDialogProps {
   open: boolean;
@@ -28,9 +27,12 @@ export function ProfileSetupDialog({
 }: ProfileSetupDialogProps) {
   const queryClient = useQueryClient();
 
+  const [step, setStep] = useState(1);
+
   const [firstName, setFirstName] = useState(defaultFirstName);
   const [lastName, setLastName] = useState(defaultLastName);
   const [profileUrl, setProfileUrl] = useState(defaultPic);
+
   const [isUploading, setIsUploading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -62,6 +64,7 @@ export function ProfileSetupDialog({
         firstName,
         lastName,
       });
+
       await queryClient.invalidateQueries({ queryKey: ["profile"] });
     } finally {
       setIsSubmitting(false);
@@ -70,81 +73,150 @@ export function ProfileSetupDialog({
 
   return (
     <Dialog open={open}>
-      <DialogContent showCloseButton={false} className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Complete your profile</DialogTitle>
-        </DialogHeader>
+      <DialogContent
+        showCloseButton={false}
+        className="sm:max-w-md rounded-2xl p-8"
+      >
+        {/* Header */}
+        <div className="flex flex-col items-center gap-3">
+          
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 bg-blue-600 rounded-lg flex items-center justify-center text-white">
+              <Video />
+            </div>
+            <div className="text-xl font-semibold">
+              {APP_NAME}
+            </div>
+          </div>
 
-        {/* Profile pic */}
-        <div className="flex flex-col items-center gap-3 py-2">
-          <Avatar className="w-20 h-20">
-            <AvatarImage src={profileUrl || "/default-avatar.png"} alt="Profile" />
-            <AvatarFallback>
-              {firstName?.[0]}
-              {lastName?.[0]}
-            </AvatarFallback>
-          </Avatar>
+          {/* Progress */}
+          <div className="flex gap-2 mt-2">
+            <div
+              className={`h-1 w-10 rounded-full ${
+                step === 1 ? "bg-blue-600" : "bg-gray-300"
+              }`}
+            />
+            <div
+              className={`h-1 w-10 rounded-full ${
+                step === 2 ? "bg-blue-600" : "bg-gray-300"
+              }`}
+            />
+          </div>
+        </div>
 
-          <label htmlFor="photo-upload">
+        {/* STEP 1 */}
+        {step === 1 && (
+          <div className="flex flex-col gap-6 mt-6">
+            <div className="text-center">
+              <h2 className="text-xl font-semibold">
+                Tell us your name
+              </h2>
+              <p className="text-sm text-muted-foreground mt-1">
+                This is how you will appear in meetings
+              </p>
+            </div>
+
+            {/* Inputs */}
+            <div className="flex flex-col gap-4">
+              <input
+                placeholder="First Name"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                className="h-12 rounded-lg bg-muted px-4 text-sm outline-none"
+              />
+
+              <input
+                placeholder="Last Name"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                className="h-12 rounded-lg bg-muted px-4 text-sm outline-none"
+              />
+            </div>
+
+            {/* Next */}
             <Button
-              variant="outline"
-              size="sm"
+              className="w-full h-12 text-base"
+              onClick={() => setStep(2)}
+              disabled={!firstName}
+            >
+              Next <ArrowRight className="ml-2 w-4 h-4" />
+            </Button>
+          </div>
+        )}
+
+        {/* STEP 2 */}
+        {step === 2 && (
+          <div className="flex flex-col gap-6 mt-6 items-center">
+            <div className="text-center">
+              <h2 className="text-xl font-semibold">
+                Add a profile photo
+              </h2>
+              <p className="text-sm text-muted-foreground mt-1">
+                Help others recognize you during meetings
+              </p>
+            </div>
+
+            {/* Avatar Upload */}
+            <div className="relative">
+              <Avatar className="w-28 h-28 cursor-pointer">
+                <AvatarImage
+                  src={profileUrl || "/default-avatar.png"}
+                />
+                <AvatarFallback>
+                  {firstName?.[0]}
+                  {lastName?.[0]}
+                </AvatarFallback>
+              </Avatar>
+
+              {/* Floating upload button */}
+              <label
+                htmlFor="photo-upload"
+                className="absolute bottom-0 right-0"
+              >
+                <div className="bg-blue-600 text-white rounded-full p-2 cursor-pointer shadow">
+                  <Pencil className="h-5 w-5" />
+                </div>
+              </label>
+
+              <input
+                id="photo-upload"
+                type="file"
+                className="hidden"
+                onChange={handlePhotoUpload}
+              />
+            </div>
+
+            <Button
+              variant="secondary"
+              className="w-full"
               disabled={isUploading}
               asChild
             >
-              <span className="cursor-pointer">
-                {isUploading ? "Uploading..." : "Upload photo"}
-              </span>
+              <label htmlFor="photo-upload" className="cursor-pointer flex items-center gap-2 justify-center">
+                <Upload className="w-4 h-4" />
+                {isUploading ? "Uploading..." : "Upload Photo"}
+              </label>
             </Button>
-          </label>
-          <input
-            id="photo-upload"
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={handlePhotoUpload}
-            disabled={isUploading}
-          />
-        </div>
 
-        {/* Name fields */}
-        <div className="flex flex-col gap-3">
-          <div className="flex flex-col gap-1">
-            <label htmlFor="first-name" className="text-sm font-medium">
-              First name
-            </label>
-            <input
-              id="first-name"
-              type="text"
-              value={firstName}
-              onChange={(e) => setFirstName(e.target.value)}
-              className="rounded-md border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
-            />
+            {/* Footer buttons */}
+            <div className="flex w-full justify-between items-center mt-2">
+              <button
+                className="text-sm text-blue-600"
+                onClick={() => setStep(1)}
+              >
+                Back
+              </button>
+
+              <Button
+                onClick={handleSubmit}
+                disabled={isSubmitting || isUploading}
+                className="px-6"
+              >
+                {isSubmitting ? "Saving..." : "Finish"}
+              </Button>
+            </div>
           </div>
-
-          <div className="flex flex-col gap-1">
-            <label htmlFor="last-name" className="text-sm font-medium">
-              Last name
-            </label>
-            <input
-              id="last-name"
-              type="text"
-              value={lastName}
-              onChange={(e) => setLastName(e.target.value)}
-              className="rounded-md border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
-            />
-          </div>
-        </div>
-
-        <DialogFooter>
-          <Button
-            onClick={handleSubmit}
-            disabled={isSubmitting || isUploading}
-            className="w-full sm:w-auto"
-          >
-            {isSubmitting ? "Saving..." : "Submit"}
-          </Button>
-        </DialogFooter>
+        )}
       </DialogContent>
     </Dialog>
   );
