@@ -5,6 +5,7 @@ import dotenv from "dotenv";
 
 // Custom imports
 import authRoutes from "./routes/auth";
+import userRoutes from "./routes/user";
 import { authenticate } from "./middleware/authenticate";
 
 dotenv.config();
@@ -17,6 +18,7 @@ app.use(express.json());
 
 // Routes
 app.use("/auth", authRoutes);
+app.use("/user", userRoutes);
 
 // Protected route example
 app.get("/api/protected", authenticate, (req, res) => {
