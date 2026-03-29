@@ -1,0 +1,30 @@
+{
+  "name": "meethub-backend",
+  "version": "1.0.0",
+  "description": "This is the backend of the meethub app",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start:dev": "node index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Broody-boy/backend-meethub.git"
+  },
+  "keywords": [
+    "Meet"
+  ],
+  "author": "Broody-boy",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Broody-boy/backend-meethub/issues"
+  },
+  "homepage": "https://github.com/Broody-boy/backend-meethub#readme",
+  "dependencies": {
+    "cors": "^2.8.6",
+    "dotenv": "^17.3.1",
+    "express": "^5.2.1",
+    "google-auth-library": "^10.6.2",
+    "jsonwebtoken": "^9.0.3"
+  }
+}
