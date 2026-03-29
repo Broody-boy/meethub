@@ -4,6 +4,7 @@ import { verifyGoogleToken } from "../utils/index";
 
 // Custom imports
 import jwt from "jsonwebtoken";
+import { prisma } from "../config";
 
 const router = express.Router();
 
@@ -17,9 +18,15 @@ router.post("/oauth", async (req, res) => {
   try {
     const user = await verifyGoogleToken(idToken);
 
+    const dbUser = await prisma.user.upsert({
+      where: { email: user.email },
+      update: {},
+      create: { email: user.email },
+    });
+
     const appUser = {
-      id: user.id,
-      email: user.email,
+      id: dbUser.clientId,
+      email: dbUser.email,
       name: user.name,
     };
 
