@@ -4,8 +4,8 @@ import cors from "cors";
 import dotenv from "dotenv";
 
 // Custom imports
-import authRoutes from "./routes/auth.js";
-import { authenticate } from "./middleware/authenticate.js";
+import authRoutes from "./routes/auth";
+import { authenticate } from "./middleware/authenticate";
 
 dotenv.config();
 

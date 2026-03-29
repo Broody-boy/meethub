@@ -1,7 +1,7 @@
 // Custom imports
-import { client as googleClient} from "../config/index.js";
+import { client as googleClient} from "../config/index";
 
-export async function verifyGoogleToken(idToken) {
+export async function verifyGoogleToken(idToken: string) {
   const ticket = await googleClient.verifyIdToken({
     idToken,
     audience: process.env.GOOGLE_CLIENT_ID,

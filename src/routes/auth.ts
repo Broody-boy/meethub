@@ -1,6 +1,6 @@
 // Third-party imports
 import express from "express";
-import { verifyGoogleToken } from "../utils/index.js";
+import { verifyGoogleToken } from "../utils/index";
 
 // Custom imports
 import jwt from "jsonwebtoken";

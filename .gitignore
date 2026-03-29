@@ -15,6 +15,7 @@ logs/
 # Build/Coverage
 coverage/
 .nyc_output/
+dist/
 
 # IDE/Editor
 .vscode/
