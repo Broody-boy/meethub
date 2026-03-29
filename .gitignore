@@ -20,3 +20,5 @@ dist/
 # IDE/Editor
 .vscode/
 .idea/
+
+*/generated/prisma
