@@ -48,6 +48,23 @@ router.get("/", async (req, res) => {
   }
 });
 
+router.post("/profile", authenticate, async (req, res) => {
+  try {
+    const { profileUrl, firstName, lastName } = req.body;
+
+    const user = await prisma.user.update({
+      where: { clientId: req.user.id },
+      data: { profileUrl, firstName, lastName, isProfileSetupComplete: true },
+      select: { firstName: true, lastName: true, profileUrl: true, isProfileSetupComplete: true },
+    });
+
+    return res.json(user);
+  } catch (err) {
+    console.error("Error updating profile:", err);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+});
+
 router.post("/profile-picture", upload.single("image"), async (req, res) => {
   try {
     if (!req.file) {
