@@ -1,0 +1,46 @@
+{
+  "name": "meethub-backend",
+  "version": "1.0.0",
+  "description": "This is the backend of the meethub app",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start:dev": "tsx watch src/index.ts",
+    "start:prod": "node dist/index.js",
+    "build": "tsc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Broody-boy/backend-meethub.git"
+  },
+  "keywords": [
+    "Meet"
+  ],
+  "author": "Broody-boy",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Broody-boy/backend-meethub/issues"
+  },
+  "homepage": "https://github.com/Broody-boy/backend-meethub#readme",
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.1019.0",
+    "@prisma/adapter-pg": "^7.6.0",
+    "@prisma/client": "^7.6.0",
+    "@types/multer": "^2.1.0",
+    "cors": "^2.8.6",
+    "dotenv": "^17.3.1",
+    "express": "^5.2.1",
+    "google-auth-library": "^10.6.2",
+    "jsonwebtoken": "^9.0.3",
+    "multer": "^2.1.1"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "^25.5.0",
+    "prisma": "^7.6.0",
+    "tsx": "^4.21.0",
+    "typescript": "^6.0.2"
+  }
+}
