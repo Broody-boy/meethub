@@ -16,7 +16,7 @@ const upload = multer({
 
 const router = express.Router();
 
-router.get("/", authenticate, async (req, res) => {
+router.get("/", async (req, res) => {
   try {
     const user = await prisma.user.findUnique({
       where: { clientId: req.user.id },
@@ -48,7 +48,7 @@ router.get("/", authenticate, async (req, res) => {
   }
 });
 
-router.post("/profile-picture", authenticate, upload.single("image"), async (req, res) => {
+router.post("/profile-picture", upload.single("image"), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ message: "No file uploaded" });
