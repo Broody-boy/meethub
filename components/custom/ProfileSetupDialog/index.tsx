@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { ArrowRight, Upload, Video, Pencil } from "lucide-react";
 import { APP_NAME } from "@/constants";
+import { useSession } from "next-auth/react";
 
 interface ProfileSetupDialogProps {
   open: boolean;
@@ -35,6 +36,8 @@ export function ProfileSetupDialog({
 
   const [isUploading, setIsUploading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { data: session } = useSession();
+  const token = session?.backendToken ?? '';
 
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -46,8 +49,13 @@ export function ProfileSetupDialog({
       formData.append("image", file);
 
       const { data } = await axios.post(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/profile-picture`,
-        formData
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/me/profile-picture`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
 
       setProfileUrl(data.profileUrl ?? data.url ?? data);
@@ -59,10 +67,15 @@ export function ProfileSetupDialog({
   const handleSubmit = async () => {
     setIsSubmitting(true);
     try {
-      await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/profile`, {
+      await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/me/profile`, {
         profileUrl,
         firstName,
         lastName,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
 
       await queryClient.invalidateQueries({ queryKey: ["profile"] });
