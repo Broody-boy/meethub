@@ -2,7 +2,7 @@
 
 import { APP_NAME } from "@/constants";
 import { signOut, useSession } from "next-auth/react";
-import useProfileFetch from "@/hooks/useProfileFetch";
+import { useProfileFetchData } from "@/hooks";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -10,7 +10,7 @@ import { ProfileSetupDialog } from "@/components/custom/ProfileSetupDialog";
 
 export function TopBar() {
   const { data: session } = useSession();
-  const { data: profileData, isLoading: isProfileDataLoading, isNotFound: isProfileDataNotFound } = useProfileFetch({
+  const { data: profileData, isLoading: isProfileDataLoading, isNotFound: isProfileDataNotFound } = useProfileFetchData({
     email: session?.user?.email!,
   });
 
