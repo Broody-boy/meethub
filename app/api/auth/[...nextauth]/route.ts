@@ -15,7 +15,49 @@ const authOptions : NextAuthOptions = {
       }
     }),
   ],
-}
+
+  session: {
+    strategy: "jwt",
+  },
+
+  callbacks: {
+    async jwt({ token, account }) {
+      // Run only on first login
+      if (account?.id_token) { //account && !token.backendToken
+        try {
+          const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/oauth`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              provider: account.provider,
+              idToken: account.id_token
+              // accessToken: account.access_token, (for github)
+            }),
+          });
+
+          if (!res.ok) {
+            throw new Error("Backend auth failed");
+          }
+
+          const data = await res.json();
+
+          token.backendToken = data.token;
+        } catch (err) {
+          console.error("JWT exchange error:", err);
+        }
+      }
+
+      return token;
+    },
+
+    async session({ session, token }) {
+      session.backendToken = token.backendToken as string;
+      return session;
+    },
+  },
+};
 
 const handler = NextAuth(authOptions);
 
