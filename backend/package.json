@@ -11,17 +11,17 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Broody-boy/backend-meethub.git"
+    "url": ""
   },
   "keywords": [
     "Meet"
   ],
-  "author": "Broody-boy",
+  "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/Broody-boy/backend-meethub/issues"
+    "url": ""
   },
-  "homepage": "https://github.com/Broody-boy/backend-meethub#readme",
+  "homepage": "",
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1019.0",
     "@prisma/adapter-pg": "^7.6.0",
