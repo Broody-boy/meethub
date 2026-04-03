@@ -12,6 +12,7 @@ import {
 import { ArrowRight, Upload, Video, Pencil } from "lucide-react";
 import { APP_NAME } from "@/constants";
 import { useSession } from "next-auth/react";
+import { TextFieldFormInput } from "@/components/form/TextFieldFormInput";
 
 interface ProfileSetupDialogProps {
   open: boolean;
@@ -131,7 +132,7 @@ export function ProfileSetupDialog({
 
             {/* Inputs */}
             <div className="flex flex-col gap-4">
-              <input
+              {/* <input
                 placeholder="First Name"
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
@@ -143,6 +144,23 @@ export function ProfileSetupDialog({
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
                 className="h-12 rounded-lg bg-muted px-4 text-sm outline-none"
+              /> */}
+
+              <TextFieldFormInput 
+                label="First Name"
+                placeholder="First Name"
+                required={true}
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+              />
+
+
+              <TextFieldFormInput 
+                label="Last Name"
+                placeholder="Last Name"
+                required={true}
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
               />
             </div>
 

@@ -4,7 +4,7 @@ import { HostType, MeetingStatus } from "@/enums";
 
 export default function MeetingsPage() {
   return (
-    <div className="bg-[#f9f9ff]">
+    <div className="bg-dashboard-background">
       {/* Banner */}
       <div className="w-full mb-8 overflow-hidden">
         <Image

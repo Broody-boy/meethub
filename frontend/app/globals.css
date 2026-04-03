@@ -45,6 +45,12 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+
+  /*extended tokens*/
+  --color-app-primary: var(--app-primary);
+  --color-dashboard-background: var(--dashboard-background);
+  --color-textbox-background: var(--textbox-background);
+  --color-textbox-error-focus-ring: var(--textbox-error-focus-ring);
 }
 
 body {
@@ -84,6 +90,11 @@ body {
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+  /* extended colors */
+  --app-primary: oklch(57.37% 0.195 257.86);
+  --dashboard-background: oklch(98.38% 0.008 286.25);
+  --textbox-background: oklch(0.9702 0 0);
+  --textbox-error-focus-ring: oklch(88.55% 0.052 15.25);
 }
 
 .dark {
@@ -118,6 +129,11 @@ body {
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
+  /* extended colors */
+  --app-primary: oklch(57.37% 0.195 257.86);
+  --dashboard-background: oklch(98.38% 0.008 286.25);
+  --textbox-background: oklch(0.9702 0 0);
+  --textbox-error-focus-ring: oklch(88.55% 0.052 15.25);
 }
 
 @layer base {
