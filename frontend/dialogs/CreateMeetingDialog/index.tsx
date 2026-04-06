@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useRef } from "react"
 import axios from "axios"
 
 import {
@@ -12,12 +12,10 @@ import {
 } from "@/components/ui/dialog"
 
 import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
-
-import { Mic, Video } from "lucide-react"
+import { Mic, MicOff, Video, VideoOff } from "lucide-react"
 import { MeetingAttendeesPermissions, MeetingOptions } from "@/enums"
 import { TextFieldFormInput } from "@/components/form"
-import { OptionsToggleCard } from "./components"
+import { OptionsToggleCard, DeviceSelectionDropDown } from "./components"
 
 export function CreateMeetingDialog({
   open,
@@ -28,14 +26,88 @@ export function CreateMeetingDialog({
 }) {
   const [meetingName, setMeetingName] = useState("")
   const [meetingOptions, setMeetingOptions] = useState<string[]>([""])
-
-  // ✅ ARRAY instead of object
   const [permissions, setPermissions] = useState<string[]>([
     MeetingAttendeesPermissions.MIC_UNMUTE,
-    MeetingAttendeesPermissions.VIDEO_START
+    MeetingAttendeesPermissions.VIDEO_START,
   ])
 
-  // ✅ API CALL
+  // Device lists
+  const [micList, setMicList] = useState<string[]>([])
+  const [cameraList, setCameraList] = useState<string[]>([])
+  const [speakerList, setSpeakerList] = useState<string[]>([])
+
+  // Selected devices
+  const [mic, setMic] = useState("")
+  const [camera, setCamera] = useState("")
+  const [speaker, setSpeaker] = useState("")
+
+  // Preview toggles
+  const [micEnabled, setMicEnabled] = useState(true)
+  const [cameraEnabled, setCameraEnabled] = useState(true)
+
+  // Stream refs
+  const streamRef = useRef<MediaStream | null>(null)
+  const videoRef = useRef<HTMLVideoElement>(null)
+
+  useEffect(() => {
+    if (!open) {
+      // Stop stream when dialog closes
+      streamRef.current?.getTracks().forEach((t) => t.stop())
+      streamRef.current = null
+      return
+    }
+
+    navigator.mediaDevices
+      .getUserMedia({ audio: true, video: true })
+      .then((stream) => {
+        streamRef.current = stream
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream
+        }
+        return navigator.mediaDevices.enumerateDevices()
+      })
+      .then((devices) => {
+        const mics = devices
+          .filter((d) => d.kind === "audioinput")
+          .map((d) => d.label || `Microphone ${d.deviceId.slice(0, 6)}`)
+        const cameras = devices
+          .filter((d) => d.kind === "videoinput")
+          .map((d) => d.label || `Camera ${d.deviceId.slice(0, 6)}`)
+        const speakers = devices
+          .filter((d) => d.kind === "audiooutput")
+          .map((d) => d.label || `Speaker ${d.deviceId.slice(0, 6)}`)
+
+        setMicList(mics)
+        setCameraList(cameras)
+        setSpeakerList(speakers)
+        if (mics.length) setMic(mics[0])
+        if (cameras.length) setCamera(cameras[0])
+        if (speakers.length) setSpeaker(speakers[0])
+      })
+      .catch(() => {
+        // permissions denied — leave lists empty
+      })
+
+    return () => {
+      streamRef.current?.getTracks().forEach((t) => t.stop())
+      streamRef.current = null
+    }
+  }, [open])
+
+  // Toggle mic tracks
+  useEffect(() => {
+    streamRef.current?.getAudioTracks().forEach((t) => {
+      t.enabled = micEnabled
+    })
+  }, [micEnabled])
+
+  // Toggle video tracks
+  useEffect(() => {
+    streamRef.current?.getVideoTracks().forEach((t) => {
+      t.enabled = cameraEnabled
+    })
+  }, [cameraEnabled])
+
   const handleStartMeeting = async () => {
     try {
       const payload = {
@@ -45,12 +117,7 @@ export function CreateMeetingDialog({
           isWaitingRoomEnabled: meetingOptions.includes(MeetingOptions.WAITING_ROOM),
         },
       }
-
-      await axios.post(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/meet`,
-        payload
-      )
-
+      await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/meet`, payload)
       onOpenChange(false)
     } catch (err) {
       console.error("Failed to create meeting", err)
@@ -61,7 +128,7 @@ export function CreateMeetingDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-6xl min-w-6xl p-0 overflow-hidden">
         <div className="grid grid-cols-2">
-          
+
           {/* LEFT PANEL */}
           <div className="p-8 space-y-6">
             <DialogHeader>
@@ -73,8 +140,7 @@ export function CreateMeetingDialog({
               </p>
             </DialogHeader>
 
-            {/* Meeting Name */}
-            <TextFieldFormInput 
+            <TextFieldFormInput
               label="Meeting Name"
               placeholder="Enter Meeting Name"
               required={true}
@@ -82,7 +148,6 @@ export function CreateMeetingDialog({
               onChange={(e) => setMeetingName(e.target.value)}
             />
 
-            {/* Meeting options */}
             <div>
               <p className="text-sm font-medium text-foreground mx-1 mb-2">Meeting Options</p>
               <OptionsToggleCard
@@ -98,7 +163,6 @@ export function CreateMeetingDialog({
               />
             </div>
 
-            {/* Permissions */}
             <div className="space-y-4">
               <p className="text-sm font-medium text-foreground mx-1 mb-2">Attendees Permissions</p>
               <OptionsToggleCard
@@ -131,50 +195,69 @@ export function CreateMeetingDialog({
           </div>
 
           {/* RIGHT PANEL */}
-          <div className="p-6 space-y-6">
-            
+          <div className="p-6 space-y-6 mt-20">
+
             {/* Video Preview */}
-            <div className="rounded-xl bg-black/80 h-[220px] flex items-center justify-center relative">
-              <p className="text-muted-foreground text-sm">Camera is off</p>
+            <div className="rounded-xl bg-black/80 h-[250px] flex items-center justify-center relative overflow-hidden">
+              <video
+                ref={videoRef}
+                autoPlay
+                muted
+                playsInline
+                className={`w-full h-full object-cover rounded-xl transition-opacity ${cameraEnabled ? "opacity-100" : "opacity-0"}`}
+              />
+              {!cameraEnabled && (
+                <p className="absolute text-muted-foreground text-sm">Camera is off</p>
+              )}
 
               <div className="absolute bottom-4 flex gap-3 bg-white rounded-lg px-4 py-2 shadow opacity-80">
-                <Button size="icon">
-                  <Mic className="w-4 h-4" />
+                <Button
+                  size="icon"
+                  variant={micEnabled ? "default" : "destructive"}
+                  onClick={() => setMicEnabled((v) => !v)}
+                  title={micEnabled ? "Mute microphone" : "Unmute microphone"}
+                >
+                  {micEnabled ? <Mic className="w-4 h-4" /> : <MicOff className="w-4 h-4" />}
                 </Button>
-                <Button size="icon">
-                  <Video className="w-4 h-4" />
+                <Button
+                  size="icon"
+                  variant={cameraEnabled ? "default" : "destructive"}
+                  onClick={() => setCameraEnabled((v) => !v)}
+                  title={cameraEnabled ? "Turn off camera" : "Turn on camera"}
+                >
+                  {cameraEnabled ? <Video className="w-4 h-4" /> : <VideoOff className="w-4 h-4" />}
                 </Button>
               </div>
             </div>
 
             {/* Device Selectors */}
             <div className="space-y-3">
-              {[
-                { label: "Microphone", value: "Built-in MacBook Pro Microphone" },
-                { label: "Camera", value: "FaceTime HD Camera" },
-                { label: "Speakers", value: "MacBook Pro Speakers" },
-              ].map((item) => (
-                <Card
-                  key={item.label}
-                  className="flex justify-between items-center p-4"
-                >
-                  <div>
-                    <p className="text-xs text-muted-foreground uppercase">
-                      {item.label}
-                    </p>
-                    <p className="text-sm font-medium">{item.value}</p>
-                  </div>
-                  <span className="text-muted-foreground">⌄</span>
-                </Card>
-              ))}
+              <DeviceSelectionDropDown
+                label="Microphone"
+                list={micList}
+                value={mic}
+                setValue={setMic}
+              />
+              <DeviceSelectionDropDown
+                label="Camera"
+                list={cameraList}
+                value={camera}
+                setValue={setCamera}
+              />
+              <DeviceSelectionDropDown
+                label="Speaker"
+                list={speakerList}
+                value={speaker}
+                setValue={setSpeaker}
+              />
             </div>
 
             {/* Actions */}
-            <DialogFooter className="flex justify-between pt-4 bg-white">
-              <Button variant="ghost" onClick={() => onOpenChange(false)}>
+            <DialogFooter className="flex justify-between pt-4 bg-white border-0">
+              <Button variant="ghost" onClick={() => onOpenChange(false)} className="p-5">
                 Cancel
               </Button>
-              <Button onClick={handleStartMeeting}>
+              <Button onClick={handleStartMeeting} className="p-5">
                 Start Meeting
               </Button>
             </DialogFooter>
