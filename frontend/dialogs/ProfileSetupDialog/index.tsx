@@ -12,7 +12,7 @@ import {
 import { ArrowRight, Upload, Video, Pencil } from "lucide-react";
 import { APP_NAME } from "@/constants";
 import { useSession } from "next-auth/react";
-import { TextFieldFormInput } from "@/components/form/TextFieldFormInput";
+import { TextFieldFormInput } from "@/components/form";
 
 interface ProfileSetupDialogProps {
   open: boolean;

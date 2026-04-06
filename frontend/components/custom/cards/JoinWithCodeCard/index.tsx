@@ -1,6 +1,6 @@
 "use client"
 
-import { TextFieldFormInput } from "@/components/form/TextFieldFormInput";
+import { TextFieldFormInput } from "@/components/form";
 import { Link } from "lucide-react";
 import { useState } from "react";
 
