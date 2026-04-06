@@ -6,13 +6,16 @@ import { useProfileFetchData } from "@/hooks";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { ProfileSetupDialog } from "@/components/custom/ProfileSetupDialog";
+import { ProfileSetupDialog } from "@/dialogs";
+import { useState } from "react";
 
 export function TopBar() {
   const { data: session } = useSession();
   const { data: profileData, isLoading: isProfileDataLoading, isNotFound: isProfileDataNotFound } = useProfileFetchData({
     email: session?.user?.email!,
   });
+
+  const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false); 
 
   const pillClasses =
   "flex items-center gap-3 px-4 h-12 rounded-full bg-muted";
@@ -59,27 +62,37 @@ return (
             />
           </>
         ) : (
-          <Button
-        variant="ghost"
-        className={`${pillClasses} hover:bg-muted/80`}
-        onClick={() => signOut()}
-      >
-        {profileData && (
-          <span className="text-base text-foreground whitespace-nowrap">
-            {profileData.firstName} {profileData.lastName}
-          </span>
-        )}
+          <>
+            <Button
+              variant="ghost"
+              className={`${pillClasses} hover:bg-muted/80`}
+              onContextMenu={() => setIsProfileDialogOpen((val) => !val)}
+              onClick={() => signOut()}
+            >
+              {profileData && (
+                <span className="text-base text-foreground whitespace-nowrap">
+                  {profileData.firstName} {profileData.lastName}
+                </span>
+              )}
 
-        <Avatar className="w-8 h-8">
-          <AvatarImage
-            src={profileData?.profileUrl || "/default-avatar.png"}
-            alt={profileData?.firstName}
-          />
-          <AvatarFallback>
-            {profileData?.firstName?.[0]}{profileData?.lastName?.[0]}
-          </AvatarFallback>
-        </Avatar>
-        </Button>
+              <Avatar className="w-8 h-8">
+                <AvatarImage
+                  src={profileData?.profileUrl || "/default-avatar.png"}
+                  alt={profileData?.firstName}
+                />
+                <AvatarFallback>
+                  {profileData?.firstName?.[0]}{profileData?.lastName?.[0]}
+                </AvatarFallback>
+              </Avatar>
+            </Button>
+        
+            <ProfileSetupDialog
+              open={isProfileDialogOpen}
+              defaultFirstName={session?.user?.name?.split(" ")[0] ?? ""}
+              defaultLastName={session?.user?.name?.split(" ").slice(1).join(" ") ?? ""}
+              defaultPic={session?.user?.image ?? ""}
+            />
+          </>
         )
     }
   </div>
