@@ -1,6 +1,11 @@
+"use client"
+
+import { useState } from "react";
 import { Video, ArrowRight } from "lucide-react";
+import { CreateMeetingDialog } from "@/dialogs";
 
 export function CreateNewMeetingCard() {
+  const [open, setOpen] = useState(false);
   return (
     <div className="bg-[#edf2fe] rounded-xl p-8 w-full shadow-sm border flex flex-col gap-5">
       
@@ -23,8 +28,10 @@ export function CreateNewMeetingCard() {
       {/* Divider */}
       <hr className="border-t border-gray-200" />
 
+      <CreateMeetingDialog open={open} onOpenChange={setOpen} />
+
       {/* CTA */}
-      <div className="flex items-center justify-between text-[#1a73e8] font-medium cursor-pointer group">
+      <div onClick={() => setOpen(true)} className="flex items-center justify-between text-[#1a73e8] font-medium cursor-pointer group">
         
         {/* Text + underline wrapper */}
         <div className="flex flex-col">
