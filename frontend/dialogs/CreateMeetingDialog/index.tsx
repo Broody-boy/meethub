@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect } from "react"
 import axios from "axios"
 
 import {
@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dialog"
 
 import { Button } from "@/components/ui/button"
-import { Mic, MicOff, Video, VideoOff } from "lucide-react"
+import { Mic, Video } from "lucide-react"
 import { MeetingAttendeesPermissions, MeetingOptions } from "@/enums"
 import { TextFieldFormInput } from "@/components/form"
 import { OptionsToggleCard, DeviceSelectionDropDown } from "./components"
@@ -41,31 +41,11 @@ export function CreateMeetingDialog({
   const [camera, setCamera] = useState("")
   const [speaker, setSpeaker] = useState("")
 
-  // Preview toggles
-  const [micEnabled, setMicEnabled] = useState(true)
-  const [cameraEnabled, setCameraEnabled] = useState(true)
-
-  // Stream refs
-  const streamRef = useRef<MediaStream | null>(null)
-  const videoRef = useRef<HTMLVideoElement>(null)
-
   useEffect(() => {
-    if (!open) {
-      // Stop stream when dialog closes
-      streamRef.current?.getTracks().forEach((t) => t.stop())
-      streamRef.current = null
-      return
-    }
-
+    if (!open) return
     navigator.mediaDevices
       .getUserMedia({ audio: true, video: true })
-      .then((stream) => {
-        streamRef.current = stream
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream
-        }
-        return navigator.mediaDevices.enumerateDevices()
-      })
+      .then(() => navigator.mediaDevices.enumerateDevices())
       .then((devices) => {
         const mics = devices
           .filter((d) => d.kind === "audioinput")
@@ -87,26 +67,7 @@ export function CreateMeetingDialog({
       .catch(() => {
         // permissions denied — leave lists empty
       })
-
-    return () => {
-      streamRef.current?.getTracks().forEach((t) => t.stop())
-      streamRef.current = null
-    }
   }, [open])
-
-  // Toggle mic tracks
-  useEffect(() => {
-    streamRef.current?.getAudioTracks().forEach((t) => {
-      t.enabled = micEnabled
-    })
-  }, [micEnabled])
-
-  // Toggle video tracks
-  useEffect(() => {
-    streamRef.current?.getVideoTracks().forEach((t) => {
-      t.enabled = cameraEnabled
-    })
-  }, [cameraEnabled])
 
   const handleStartMeeting = async () => {
     try {
@@ -198,34 +159,15 @@ export function CreateMeetingDialog({
           <div className="p-6 space-y-6 mt-20">
 
             {/* Video Preview */}
-            <div className="rounded-xl bg-black/80 h-[250px] flex items-center justify-center relative overflow-hidden">
-              <video
-                ref={videoRef}
-                autoPlay
-                muted
-                playsInline
-                className={`w-full h-full object-cover rounded-xl transition-opacity ${cameraEnabled ? "opacity-100" : "opacity-0"}`}
-              />
-              {!cameraEnabled && (
-                <p className="absolute text-muted-foreground text-sm">Camera is off</p>
-              )}
+            <div className="rounded-xl bg-black/80 h-[250px] flex items-center justify-center relative">
+              <p className="text-muted-foreground text-sm">Camera is off</p>
 
               <div className="absolute bottom-4 flex gap-3 bg-white rounded-lg px-4 py-2 shadow opacity-80">
-                <Button
-                  size="icon"
-                  variant={micEnabled ? "default" : "destructive"}
-                  onClick={() => setMicEnabled((v) => !v)}
-                  title={micEnabled ? "Mute microphone" : "Unmute microphone"}
-                >
-                  {micEnabled ? <Mic className="w-4 h-4" /> : <MicOff className="w-4 h-4" />}
+                <Button size="icon">
+                  <Mic className="w-4 h-4" />
                 </Button>
-                <Button
-                  size="icon"
-                  variant={cameraEnabled ? "default" : "destructive"}
-                  onClick={() => setCameraEnabled((v) => !v)}
-                  title={cameraEnabled ? "Turn off camera" : "Turn on camera"}
-                >
-                  {cameraEnabled ? <Video className="w-4 h-4" /> : <VideoOff className="w-4 h-4" />}
+                <Button size="icon">
+                  <Video className="w-4 h-4" />
                 </Button>
               </div>
             </div>
