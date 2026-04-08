@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import axios from "axios"
 
 import {
@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dialog"
 
 import { Button } from "@/components/ui/button"
-import { Mic, Video } from "lucide-react"
+import { Mic, MicOff, Video, VideoOff } from "lucide-react"
 import { MeetingAttendeesPermissions, MeetingOptions } from "@/enums"
 import { TextFieldFormInput } from "@/components/form"
 import { OptionsToggleCard, DeviceSelectionDropDown } from "./components"
@@ -41,61 +41,120 @@ export function CreateMeetingDialog({
   const [mic, setMic] = useState("")
   const [camera, setCamera] = useState("")
   const [speaker, setSpeaker] = useState("")
-  const [loadingPermissions, setLoadingPermissions] = useState(true);
-  const [cameraPermissionState, setCameraPermissionState] = useState('prompt');
-  const [microphonePermissionState, setMicrophonePermissionState] = useState('prompt');
-  const {checkPermissions, listenPermissionChanges, listMicrophones, listCameras,  listSpeakers} = useDevices();
+
+  const [loadingPermissions, setLoadingPermissions] = useState(true)
+  const [cameraPermissionState, setCameraPermissionState] = useState("prompt")
+  const [microphonePermissionState, setMicrophonePermissionState] = useState("prompt")
+
+  // Stream state
+  const [stream, setStream] = useState<MediaStream | null>(null)
+  const [videoEnabled, setVideoEnabled] = useState(true)
+  const [audioEnabled, setAudioEnabled] = useState(true)
+  const [mediaError, setMediaError] = useState<string | null>(null)
+
+  const videoRef = useRef<HTMLVideoElement>(null)
+
+  const { checkPermissions, listenPermissionChanges, listMicrophones, listCameras, listSpeakers, getUserMedia } = useDevices()
 
   const setCameraData = async () => {
-    const cameras = await listCameras();
+    const cameras = await listCameras()
     setCameraList(cameras)
     if (cameras.length && !camera) setCamera(cameras[0])
-  } 
+  }
 
   const setMicAndSpeakerData = async () => {
-    const mics = await listMicrophones();
+    const mics = await listMicrophones()
     setMicList(mics)
     if (mics.length && !mic) setMic(mics[0])
 
-    const speakers = await listSpeakers();
+    const speakers = await listSpeakers()
     setSpeakerList(speakers)
     if (speakers.length && !speaker) setSpeaker(speakers[0])
   }
 
+  /** Start (or restart) the media stream */
+  const startStream = useCallback(async () => {
+    // Stop any existing stream first
+    setStream((prev) => {
+      if (prev) prev.getTracks().forEach((t) => t.stop())
+      return null
+    })
+    setMediaError(null)
+
+    try {
+      const newStream = await getUserMedia({ video: true, audio: true })
+      setStream(newStream)
+
+      // Sync initial track states
+      newStream.getVideoTracks().forEach((t) => { t.enabled = videoEnabled })
+      newStream.getAudioTracks().forEach((t) => { t.enabled = audioEnabled })
+    } catch (err: unknown) {
+      setMediaError(err instanceof Error ? err.message : "Could not access media devices.")
+    }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  /** Attach stream to video element whenever stream changes */
   useEffect(() => {
-    if (!open) return
+    if (videoRef.current) {
+      videoRef.current.srcObject = stream
+    }
+  }, [stream])
+
+  /** Toggle video track */
+  const toggleVideo = () => {
+    setVideoEnabled((prev) => {
+      const next = !prev
+      stream?.getVideoTracks().forEach((t) => { t.enabled = next })
+      return next
+    })
+  }
+
+  /** Toggle audio track */
+  const toggleAudio = () => {
+    setAudioEnabled((prev) => {
+      const next = !prev
+      stream?.getAudioTracks().forEach((t) => { t.enabled = next })
+      return next
+    })
+  }
+
+  useEffect(() => {
+    if (!open) {
+      // Clean up stream when dialog closes
+      setStream((prev) => {
+        if (prev) prev.getTracks().forEach((t) => t.stop())
+        return null
+      })
+      return
+    }
 
     const asyncFn = async () => {
       try {
-        await new Promise((res) => {setTimeout(res, 1000)})
-        const permissions = await checkPermissions()
-        setLoadingPermissions(false);
+        await new Promise((res) => { setTimeout(res, 1000) })
+        const perms = await checkPermissions()
+        setLoadingPermissions(false)
 
-        if (permissions) {
-          setCameraPermissionState(permissions.camera.state)
-          setMicrophonePermissionState(permissions.microphone.state)
+        if (perms) {
+          setCameraPermissionState(perms.camera.state)
+          setMicrophonePermissionState(perms.microphone.state)
 
-          if (permissions.camera.state === 'granted') {
-            setCameraData()
+          if (perms.camera.state === "granted") setCameraData()
+          if (perms.microphone.state === "granted") setMicAndSpeakerData()
+
+          // Start stream if both are already granted
+          if (perms.camera.state === "granted" && perms.microphone.state === "granted") {
+            startStream()
           }
 
-          if (permissions.microphone.state === 'granted') {
-            setMicAndSpeakerData()
-          }
-
-          listenPermissionChanges(permissions.camera, async (state) => {
-            setCameraPermissionState(state);
-            if (state === 'granted') {
-              setCameraData()
-            }
+          listenPermissionChanges(perms.camera, async (state) => {
+            setCameraPermissionState(state)
+            if (state === "granted") setCameraData()
           })
 
-          listenPermissionChanges(permissions.microphone, async (state) => {
-            setMicrophonePermissionState(state);
-            if (state === 'granted') {
-              setMicAndSpeakerData()
-            }
-          });
+          listenPermissionChanges(perms.microphone, async (state) => {
+            setMicrophonePermissionState(state)
+            if (state === "granted") setMicAndSpeakerData()
+          })
         }
       } catch (error) {
         console.error("error", error)
@@ -103,7 +162,7 @@ export function CreateMeetingDialog({
     }
 
     asyncFn()
-  }, [open])
+  }, [open]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleStartMeeting = async () => {
     try {
@@ -120,6 +179,8 @@ export function CreateMeetingDialog({
       console.error("Failed to create meeting", err)
     }
   }
+
+  const cameraOff = !videoEnabled || !stream
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -195,18 +256,64 @@ export function CreateMeetingDialog({
           <div className="p-6 space-y-6 mt-20">
 
             {/* Video Preview */}
-            <div className="rounded-xl bg-black/80 h-[250px] flex items-center justify-center relative">
-              <p className="text-muted-foreground text-sm">Camera is off</p>
+            <div className="rounded-xl bg-black/80 h-[250px] flex items-center justify-center relative overflow-hidden">
+              {/* Live video */}
+              <video
+                ref={videoRef}
+                autoPlay
+                muted
+                playsInline
+                className={`absolute inset-0 w-full h-full object-cover rounded-xl transition-opacity duration-200 ${cameraOff ? "opacity-0" : "opacity-100"}`}
+              />
 
-              <div className="absolute bottom-4 flex gap-3 bg-white rounded-lg px-4 py-2 shadow opacity-80">
-                <Button size="icon">
-                  <Mic className="w-4 h-4" />
+              {/* Overlay when camera is off */}
+              {cameraOff && (
+                <p className="text-muted-foreground text-sm z-10">
+                  {mediaError ?? "Camera is off"}
+                </p>
+              )}
+
+              {/* Error banner */}
+              {mediaError && !cameraOff && (
+                <p className="absolute top-2 left-2 right-2 text-xs text-red-400 bg-black/60 rounded px-2 py-1 z-10">
+                  {mediaError}
+                </p>
+              )}
+
+              {/* Controls */}
+              <div className="absolute bottom-4 flex gap-3 bg-white rounded-lg px-4 py-2 shadow opacity-80 z-10">
+                <Button
+                  size="icon"
+                  variant={audioEnabled ? "default" : "destructive"}
+                  onClick={toggleAudio}
+                  title={audioEnabled ? "Mute microphone" : "Unmute microphone"}
+                >
+                  {audioEnabled ? <Mic className="w-4 h-4" /> : <MicOff className="w-4 h-4" />}
                 </Button>
-                <Button size="icon">
-                  <Video className="w-4 h-4" />
+                <Button
+                  size="icon"
+                  variant={videoEnabled ? "default" : "destructive"}
+                  onClick={toggleVideo}
+                  title={videoEnabled ? "Turn off camera" : "Turn on camera"}
+                >
+                  {videoEnabled ? <Video className="w-4 h-4" /> : <VideoOff className="w-4 h-4" />}
                 </Button>
               </div>
             </div>
+
+            {/* No stream yet — prompt to request access */}
+            {!stream && !loadingPermissions && !mediaError && (
+              <Button variant="outline" className="w-full" onClick={startStream}>
+                Allow Camera &amp; Microphone
+              </Button>
+            )}
+
+            {/* Retry on error */}
+            {mediaError && (
+              <Button variant="outline" className="w-full" onClick={startStream}>
+                Retry
+              </Button>
+            )}
 
             {/* Device Selectors */}
             <div className="space-y-3">
