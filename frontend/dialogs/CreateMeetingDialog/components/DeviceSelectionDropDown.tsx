@@ -1,18 +1,21 @@
 'use client'
 
+import { Dispatch, SetStateAction } from 'react'
+
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { Device } from '@/types'
 
 import { ChevronDown  } from "lucide-react"
 
 interface FormDropDownProps {
-  list: string[]
-  value: string
-  setValue: (val: string) => void
+  list: Device[]
+  value?: Device
+  setValue: Dispatch<SetStateAction<Device | undefined>>
   label?: string
   loadingPermissions: boolean
   permissionState: string
@@ -20,12 +23,14 @@ interface FormDropDownProps {
 
 export const DeviceSelectionDropDown = ({ list, value, setValue, label, loadingPermissions, permissionState }: FormDropDownProps) => {
   
-  let text = value
+  let text
 
   if (loadingPermissions)
     text = 'Checking Permissions...';
   else if (permissionState === 'denied' || permissionState === 'prompt')
     text = 'Permission Required'
+  else
+    text = value?.name ?? label
   
   return (
     <div className='space-y-1'>
@@ -40,14 +45,14 @@ export const DeviceSelectionDropDown = ({ list, value, setValue, label, loadingP
       <DropdownMenuContent className='w-full min-w-[var(--radix-dropdown-menu-trigger-width)]'>
         {list.map((item) => (
           <DropdownMenuCheckboxItem
-            key={item}
+            key={item.deviceId}
             checked={value === item}
             onCheckedChange={(checked: boolean) => {
               if (checked) setValue(item)
             }}
             className='py-3 px-2'
           >
-            {item}
+            {item?.name ?? label}
           </DropdownMenuCheckboxItem>
         ))}
       </DropdownMenuContent>

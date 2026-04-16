@@ -27,7 +27,10 @@ export const useDevices = () => {
         
         const mics = devices
           .filter((d) => d.kind === "audioinput")
-          .map((d) => d.label || `Microphone ${d.deviceId.slice(0, 6)}`)
+          .map((d) => ({
+            name: d.label || `Microphone ${d.deviceId.slice(0, 6)}`,
+            deviceId: d.deviceId
+          }))
 
         return mics
     }
@@ -38,7 +41,10 @@ export const useDevices = () => {
         
         const cameras = devices
           .filter((d) => d.kind === "videoinput")
-          .map((d) => d.label || `Camera ${d.deviceId.slice(0, 6)}`)
+          .map((d) => ({
+            name: d.label || `Camera ${d.deviceId.slice(0, 6)}`,
+            deviceId: d.deviceId
+          }))
 
         return cameras
     }
@@ -49,7 +55,10 @@ export const useDevices = () => {
         
         const speakers = devices
           .filter((d) => d.kind === "audiooutput")
-          .map((d) => d.label || `Speaker ${d.deviceId.slice(0, 6)}`)
+          .map((d) => ({
+            name: d.label || `Speaker ${d.deviceId.slice(0, 6)}`,
+            deviceId: d.deviceId
+          }))
 
         return speakers
     }

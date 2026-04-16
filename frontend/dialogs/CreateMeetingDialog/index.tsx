@@ -17,6 +17,7 @@ import { MeetingAttendeesPermissions, MeetingOptions } from "@/enums"
 import { TextFieldFormInput } from "@/components/form"
 import { OptionsToggleCard, DeviceSelectionDropDown } from "./components"
 import { useDevices } from "./hooks"
+import { Device } from "@/types"
 
 export function CreateMeetingDialog({
   open,
@@ -33,14 +34,14 @@ export function CreateMeetingDialog({
   ])
 
   // Device lists
-  const [micList, setMicList] = useState<string[]>([])
-  const [cameraList, setCameraList] = useState<string[]>([])
-  const [speakerList, setSpeakerList] = useState<string[]>([])
+  const [micList, setMicList] = useState<Device[]>([])
+  const [cameraList, setCameraList] = useState<Device[]>([])
+  const [speakerList, setSpeakerList] = useState<Device[]>([])
 
   // Selected devices
-  const [mic, setMic] = useState("")
-  const [camera, setCamera] = useState("")
-  const [speaker, setSpeaker] = useState("")
+  const [mic, setMic] = useState<Device>()
+  const [camera, setCamera] = useState<Device>()
+  const [speaker, setSpeaker] = useState<Device>()
   const [loadingPermissions, setLoadingPermissions] = useState(true);
   const [cameraPermissionState, setCameraPermissionState] = useState('prompt');
   const [microphonePermissionState, setMicrophonePermissionState] = useState('prompt');
