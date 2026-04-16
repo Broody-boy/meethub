@@ -51,6 +51,8 @@
   --color-dashboard-background: var(--dashboard-background);
   --color-textbox-background: var(--textbox-background);
   --color-textbox-error-focus-ring: var(--textbox-error-focus-ring);
+  --color-device-preview-button-unselected-background: var(--device-preview-button-unselected-background);
+  --color-device-preview-button-unselected-icon: var(--device-preview-button-unselected-icon);
 }
 
 body {
@@ -95,6 +97,8 @@ body {
   --dashboard-background: oklch(98.38% 0.008 286.25);
   --textbox-background: oklch(0.9702 0 0);
   --textbox-error-focus-ring: oklch(88.55% 0.052 15.25);
+  --device-preview-button-unselected-background: oklch(0.9006 0 0);
+  --device-preview-button-unselected-icon: oklch(0.3975 0.0234 265.71);
 }
 
 .dark {
@@ -134,6 +138,8 @@ body {
   --dashboard-background: oklch(98.38% 0.008 286.25);
   --textbox-background: oklch(0.9702 0 0);
   --textbox-error-focus-ring: oklch(88.55% 0.052 15.25);
+  --device-preview-button-unselected-background: oklch(0.9006 0 0);
+  --device-preview-button-unselected-icon: oklch(0.3975 0.0234 265.71);
 }
 
 @layer base {

@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button"
 import { Mic, Video } from "lucide-react"
 import { MeetingAttendeesPermissions, MeetingOptions } from "@/enums"
 import { TextFieldFormInput } from "@/components/form"
-import { OptionsToggleCard, DeviceSelectionDropDown } from "./components"
+import { OptionsToggleCard, DeviceSelectionDropDown, MicPreviewButton, CameraPreviewButton } from "./components"
 import { useDevices } from "./hooks"
 import { Device } from "@/types"
 
@@ -46,6 +46,11 @@ export function CreateMeetingDialog({
   const [cameraPermissionState, setCameraPermissionState] = useState('prompt');
   const [microphonePermissionState, setMicrophonePermissionState] = useState('prompt');
   const {checkPermissions, listenPermissionChanges, listMicrophones, listCameras,  listSpeakers} = useDevices();
+
+
+  // Preview States
+  const [isCameraPreviewEnabled, setIsCameraPreviewEnabled] = useState<boolean>(false)
+  const [isMicPreviewEnabled, setIsMicPreviewEnabled] = useState<boolean>(false)
 
   const setCameraData = async () => {
     const cameras = await listCameras();
@@ -200,12 +205,14 @@ export function CreateMeetingDialog({
               <p className="text-muted-foreground text-sm">Camera is off</p>
 
               <div className="absolute bottom-4 flex gap-3 bg-white rounded-lg px-4 py-2 shadow opacity-80">
-                <Button size="icon">
-                  <Mic className="w-4 h-4" />
-                </Button>
-                <Button size="icon">
-                  <Video className="w-4 h-4" />
-                </Button>
+                <MicPreviewButton
+                  isMicPreviewEnabled={isMicPreviewEnabled}
+                  setIsMicPreviewEnabled={setIsMicPreviewEnabled}
+                />
+                <CameraPreviewButton
+                  isCameraPreviewEnabled={isCameraPreviewEnabled}
+                  setIsCameraPreviewEnabled={setIsCameraPreviewEnabled}
+                />
               </div>
             </div>
 
