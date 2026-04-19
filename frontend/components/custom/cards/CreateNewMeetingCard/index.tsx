@@ -28,8 +28,6 @@ export function CreateNewMeetingCard() {
       {/* Divider */}
       <hr className="border-t border-gray-200" />
 
-      <CreateMeetingDialog open={open} onOpenChange={setOpen} />
-
       {/* CTA */}
       <div onClick={() => setOpen(true)} className="flex items-center justify-between text-[#1a73e8] font-medium cursor-pointer group">
         
@@ -45,6 +43,8 @@ export function CreateNewMeetingCard() {
 
         <ArrowRight className="w-6 h-6 transition-transform group-hover:translate-x-1" />
       </div>
+
+      {open && <CreateMeetingDialog open={open} onOpenChange={setOpen} />}  
 
     </div>
   );
