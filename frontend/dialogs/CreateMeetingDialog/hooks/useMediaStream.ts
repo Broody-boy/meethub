@@ -45,7 +45,7 @@ export const useMediaStream = ({
     setIsMicOn(false)
   }, [])
 
-  const turnCameraOn = useCallback(async () => {
+  const turnCameraOnWithDevice = useCallback(async (cameraDeviceId?: string) => {
     const hasPermission =
       cameraPermissionState === "granted" ||
       cameraPermissionState === "unsupported" ||
@@ -55,7 +55,7 @@ export const useMediaStream = ({
 
     try {
       const nextVideoStream = await navigator.mediaDevices.getUserMedia({
-        video: selectedCameraId ? { deviceId: { exact: selectedCameraId } } : true,
+        video: cameraDeviceId ? { deviceId: { exact: cameraDeviceId } } : true,
         audio: false,
       })
 
@@ -79,9 +79,13 @@ export const useMediaStream = ({
         return false
       }
     }
-  }, [cameraPermissionState, requestCameraPermission, selectedCameraId, turnCameraOff])
+  }, [cameraPermissionState, requestCameraPermission, turnCameraOff])
 
-  const turnMicOn = useCallback(async () => {
+  const turnCameraOn = useCallback(async () => {
+    return turnCameraOnWithDevice(selectedCameraId)
+  }, [selectedCameraId, turnCameraOnWithDevice])
+
+  const turnMicOnWithDevice = useCallback(async (microphoneDeviceId?: string) => {
     const hasPermission =
       microphonePermissionState === "granted" ||
       microphonePermissionState === "unsupported" ||
@@ -91,7 +95,7 @@ export const useMediaStream = ({
 
     try {
       const nextAudioStream = await navigator.mediaDevices.getUserMedia({
-        audio: selectedMicrophoneId ? { deviceId: { exact: selectedMicrophoneId } } : true,
+        audio: microphoneDeviceId ? { deviceId: { exact: microphoneDeviceId } } : true,
         video: false,
       })
 
@@ -115,7 +119,11 @@ export const useMediaStream = ({
         return false
       }
     }
-  }, [microphonePermissionState, requestMicPermission, selectedMicrophoneId, turnMicOff])
+  }, [microphonePermissionState, requestMicPermission, turnMicOff])
+
+  const turnMicOn = useCallback(async () => {
+    return turnMicOnWithDevice(selectedMicrophoneId)
+  }, [selectedMicrophoneId, turnMicOnWithDevice])
 
   const toggleCamera = useCallback(async () => {
     if (isCameraOn) {
@@ -138,25 +146,23 @@ export const useMediaStream = ({
     turnMicOff()
   }, [turnCameraOff, turnMicOff])
 
-  useEffect(() => {
-    if (!selectedCameraId && isCameraOn) {
+  const handleCameraDeviceChange = useCallback(async (cameraDeviceId?: string) => {
+    if (!isCameraOn) return
+    if (!cameraDeviceId) {
       turnCameraOff()
       return
     }
-    if (selectedCameraId && isCameraOn) {
-      void turnCameraOn()
-    }
-  }, [isCameraOn, selectedCameraId, turnCameraOn, turnCameraOff])
+    await turnCameraOnWithDevice(cameraDeviceId)
+  }, [isCameraOn, turnCameraOff, turnCameraOnWithDevice])
 
-  useEffect(() => {
-    if (!selectedMicrophoneId && isMicOn) {
+  const handleMicDeviceChange = useCallback(async (microphoneDeviceId?: string) => {
+    if (!isMicOn) return
+    if (!microphoneDeviceId) {
       turnMicOff()
       return
     }
-    if (selectedMicrophoneId && isMicOn) {
-      void turnMicOn()
-    }
-  }, [isMicOn, selectedMicrophoneId, turnMicOn, turnMicOff])
+    await turnMicOnWithDevice(microphoneDeviceId)
+  }, [isMicOn, turnMicOff, turnMicOnWithDevice])
 
   useEffect(() => () => cleanupAll(), [cleanupAll])
 
@@ -167,6 +173,8 @@ export const useMediaStream = ({
     audioStream,
     toggleCamera,
     toggleMic,
+    handleCameraDeviceChange,
+    handleMicDeviceChange,
     cleanupAll,
   }
 }
