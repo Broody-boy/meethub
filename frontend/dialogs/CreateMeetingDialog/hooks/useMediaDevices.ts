@@ -183,7 +183,7 @@ export const useMediaDevices = () => {
       if (cameraPermission) cameraPermission.onchange = null
       if (microphonePermission) microphonePermission.onchange = null
     }
-  }, [refreshDevices, cameraPermissionState, microphonePermissionState])
+  }, [refreshDevices])
 
   return {
     devices,
