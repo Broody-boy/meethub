@@ -15,9 +15,10 @@ import { Button } from "@/components/ui/button"
 import { Mic, Video } from "lucide-react"
 import { MeetingAttendeesPermissions, MeetingOptions } from "@/enums"
 import { TextFieldFormInput } from "@/components/form"
-import { OptionsToggleCard, DeviceSelectionDropDown, MicPreviewButton, CameraPreviewButton } from "./components"
+import { OptionsToggleCard, DeviceSelectionDropDown, VideoPreview } from "./components"
 import { useDevices } from "./hooks"
 import { Device } from "@/types"
+import { useMediaPermissions } from "@/hooks"
 
 export function CreateMeetingDialog({
   open,
@@ -33,83 +34,9 @@ export function CreateMeetingDialog({
     MeetingAttendeesPermissions.VIDEO_START,
   ])
 
-  // Device lists
-  const [micList, setMicList] = useState<Device[]>([])
-  const [cameraList, setCameraList] = useState<Device[]>([])
-  const [speakerList, setSpeakerList] = useState<Device[]>([])
+  const [mediaPermissions, setMediaPermissions] = useState({mic: "pending", camera: "pending"})
 
-  // Selected devices
-  const [mic, setMic] = useState<Device>()
-  const [camera, setCamera] = useState<Device>()
-  const [speaker, setSpeaker] = useState<Device>()
-  const [loadingPermissions, setLoadingPermissions] = useState(true);
-  const [cameraPermissionState, setCameraPermissionState] = useState('prompt');
-  const [microphonePermissionState, setMicrophonePermissionState] = useState('prompt');
-  const {checkPermissions, listenPermissionChanges, listMicrophones, listCameras,  listSpeakers} = useDevices();
-
-
-  // Preview States
-  const [isCameraPreviewEnabled, setIsCameraPreviewEnabled] = useState<boolean>(false)
-  const [isMicPreviewEnabled, setIsMicPreviewEnabled] = useState<boolean>(false)
-
-  const setCameraData = async () => {
-    const cameras = await listCameras();
-    setCameraList(cameras)
-    if (cameras.length && !camera) setCamera(cameras[0])
-  } 
-
-  const setMicAndSpeakerData = async () => {
-    const mics = await listMicrophones();
-    setMicList(mics)
-    if (mics.length && !mic) setMic(mics[0])
-
-    const speakers = await listSpeakers();
-    setSpeakerList(speakers)
-    if (speakers.length && !speaker) setSpeaker(speakers[0])
-  }
-
-  useEffect(() => {
-    if (!open) return
-
-    const asyncFn = async () => {
-      try {
-        await new Promise((res) => {setTimeout(res, 1000)})
-        const permissions = await checkPermissions()
-        setLoadingPermissions(false);
-
-        if (permissions) {
-          setCameraPermissionState(permissions.camera.state)
-          setMicrophonePermissionState(permissions.microphone.state)
-
-          if (permissions.camera.state === 'granted') {
-            setCameraData()
-          }
-
-          if (permissions.microphone.state === 'granted') {
-            setMicAndSpeakerData()
-          }
-
-          listenPermissionChanges(permissions.camera, async (state) => {
-            setCameraPermissionState(state);
-            if (state === 'granted') {
-              setCameraData()
-            }
-          })
-
-          listenPermissionChanges(permissions.microphone, async (state) => {
-            setMicrophonePermissionState(state);
-            if (state === 'granted') {
-              setMicAndSpeakerData()
-            }
-          });
-        }
-      } catch (error) {
-        console.error("error", error)
-      }
-    }
-
-    asyncFn()
-  }, [open])
+  const { checkMediaPermissionsAndReturnStream } = useMediaPermissions();
 
   const handleStartMeeting = async () => {
     try {
@@ -126,6 +53,16 @@ export function CreateMeetingDialog({
       console.error("Failed to create meeting", err)
     }
   }
+
+  const onDialogOpen = async () => {
+    const result = await checkMediaPermissionsAndReturnStream()
+    setMediaPermissions({camera: result.camera, mic: result.mic})
+  }
+
+  useEffect(()=> {
+    if (!open) return
+    onDialogOpen()
+  }, [open])
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -201,48 +138,7 @@ export function CreateMeetingDialog({
           <div className="p-6 space-y-6 mt-20">
 
             {/* Video Preview */}
-            <div className="rounded-xl bg-black/80 h-[250px] flex items-center justify-center relative">
-              <p className="text-muted-foreground text-sm">Camera is off</p>
-
-              <div className="absolute bottom-4 flex gap-3 bg-white rounded-lg px-4 py-2 shadow opacity-80">
-                <MicPreviewButton
-                  isMicPreviewEnabled={isMicPreviewEnabled}
-                  setIsMicPreviewEnabled={setIsMicPreviewEnabled}
-                />
-                <CameraPreviewButton
-                  isCameraPreviewEnabled={isCameraPreviewEnabled}
-                  setIsCameraPreviewEnabled={setIsCameraPreviewEnabled}
-                />
-              </div>
-            </div>
-
-            {/* Device Selectors */}
-            <div className="space-y-3">
-              <DeviceSelectionDropDown
-                label="Microphone"
-                list={micList}
-                value={mic}
-                setValue={setMic}
-                loadingPermissions={loadingPermissions}
-                permissionState={microphonePermissionState}
-              />
-              <DeviceSelectionDropDown
-                label="Camera"
-                list={cameraList}
-                value={camera}
-                setValue={setCamera}
-                loadingPermissions={loadingPermissions}
-                permissionState={cameraPermissionState}
-              />
-              <DeviceSelectionDropDown
-                label="Speaker"
-                list={speakerList}
-                value={speaker}
-                setValue={setSpeaker}
-                loadingPermissions={loadingPermissions}
-                permissionState={microphonePermissionState}
-              />
-            </div>
+            <VideoPreview permissions={mediaPermissions} stream={null}/>
 
             {/* Actions */}
             <DialogFooter className="flex justify-between pt-4 bg-white border-0">
